@@ -1,0 +1,13 @@
+# Configuración local y secretos de SQL Server.
+/src/customers/system/engine/tmssDatabaseCfg.php
+
+# Archivos de ejecución locales.
+/src/customers/system/logs/
+
+# Overrides locales de entorno.
+/.env
+/.env.*
+!/.env.example
+
+# Metadatos del sistema operativo.
+.DS_Store
