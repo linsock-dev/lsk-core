@@ -19,6 +19,9 @@ if (!extension_loaded('sqlsrv')) {
     'UID' => 'sa',
     'PWD' => 'TuPassword123!',
     'CharacterSet' => 'UTF-8',
+    // El SQL Server de diagnóstico usa un certificado autofirmado.
+    'Encrypt' => true,
+    'TrustServerCertificate' => true,
   );
 
   $connection = sqlsrv_connect('192.168.0.222', $connectionInfo);
@@ -32,7 +35,7 @@ if (!extension_loaded('sqlsrv')) {
       $result['message'] = print_r(sqlsrv_errors(), true);
     } else {
       $result['status'] = 'ok';
-      $result['message'] = 'Conexión y SELECT sobre dbo.hlt_pat correctos.';
+      $result['message'] = 'Conexión cifrada y SELECT sobre dbo.hlt_pat correctos (certificado autofirmado aceptado sólo para diagnóstico).';
       sqlsrv_free_stmt($statement);
     }
 
