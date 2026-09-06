@@ -11,6 +11,7 @@ Aplicación web empresarial multiempresa desarrollada en PHP, con un MVC propio 
 - [Módulos funcionales](#módulos-funcionales)
 - [Base de datos](#base-de-datos)
 - [Requisitos y configuración local](#requisitos-y-configuración-local)
+- [Despliegue con Docker](#despliegue-con-docker)
 - [Puntos de entrada](#puntos-de-entrada)
 - [Guía de desarrollo](DEVELOPMENT.md)
 - [Validación y despliegue](#validación-y-despliegue)
@@ -49,6 +50,9 @@ El arranque registra configuración, logging, sesión, request, response, base d
 ```text
 .
 ├── README.md
+├── docker/                              # Despliegues Nginx + PHP-FPM
+│   ├── alpine/                           # Perfil basado en Alpine
+│   └── debian/                           # Perfil basado en Debian
 └── src/
     ├── customers/                       # Aplicación desplegable
     │   ├── wwwroot/                     # Document root y puntos de entrada
@@ -151,6 +155,28 @@ No existe un mecanismo de migraciones ni un runner de SQL versionado. Para insta
 
 La configuración general se carga desde `src/customers/system/config/tmssOnLine.php`. No usar sus valores de clientes ni datos de conexión como plantilla de secretos nuevos.
 
+## Despliegue con Docker
+
+El directorio [`docker/`](docker/README.md) contiene dos perfiles alternativos:
+Nginx con PHP-FPM sobre Alpine o sobre Debian. Ambos incluyen PHP 8.3, ODBC 18 y
+las extensiones `sqlsrv` y `pdo_sqlsrv`; SQL Server debe ser externo y accesible
+desde el contenedor PHP.
+
+El archivo de conexión sigue estando exclusivamente en su ubicación normal,
+`src/customers/system/engine/tmssDatabaseCfg.php`. Debe existir y estar completo
+antes de construir la imagen. No hay mounts, generación ni copias de ese archivo
+en Compose; el Dockerfile incorpora el árbol `src/customers/` como aplicación.
+Por contener credenciales, la imagen resultante debe tratarse como privada.
+
+Desde la raíz del repositorio, por ejemplo para Debian:
+
+```sh
+docker compose -f docker/debian/docker-compose.yml up -d --build
+```
+
+Para Alpine, reemplace `debian` por `alpine`. La guía completa, incluidas
+variables, logs, actualización y apagado, está en [`docker/README.md`](docker/README.md).
+
 ## Puntos de entrada
 
 | Archivo | Finalidad |
@@ -171,7 +197,7 @@ La guía de desarrollo, convenciones de código, reglas para cambios SQL y forma
 
 ## Validación y despliegue
 
-Los pasos de validación, despliegue y la limitación actual de no contar con pruebas automatizadas ni CI están centralizados en [DEVELOPMENT.md](DEVELOPMENT.md#validación).
+Los pasos de validación y la limitación actual de no contar con pruebas automatizadas ni CI están centralizados en [DEVELOPMENT.md](DEVELOPMENT.md#validación). Para los perfiles Nginx/PHP-FPM, consultar la guía de [Docker](docker/README.md).
 
 ## Consideraciones de seguridad y mantenimiento
 

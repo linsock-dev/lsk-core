@@ -1,0 +1,12 @@
+# El contexto de build es la raíz del repositorio. Sólo se necesita la aplicación
+# y la configuración que se copia en la imagen.
+**
+!src/
+!src/customers/
+!src/customers/**
+!docker/
+!docker/php/
+!docker/php/conf.d/
+!docker/php/conf.d/zz-lsk-core.ini
+!docker/nginx/
+!docker/nginx/default.conf

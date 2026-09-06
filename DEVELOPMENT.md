@@ -14,7 +14,7 @@ Se requiere PHP 8.1+, la extensión `sqlsrv`, acceso a SQL Server y un servidor 
 4. Verificar que `tmssDatabaseCfg.php`, tokens, certificados y otros secretos no se incorporen a Git.
 5. No usar valores de configuración de clientes existentes para crear secretos nuevos.
 
-No hay un manifiesto raíz de Composer o npm, ni un comando de build del proyecto. Las dependencias se sirven desde `src/customers/wwwroot/library/`.
+No hay un manifiesto raíz de Composer o npm. Las dependencias se sirven desde `src/customers/wwwroot/library/`. Para ejecutar la aplicación en contenedores, hay perfiles Nginx + PHP-FPM en [`docker/README.md`](docker/README.md); antes del build, `src/customers/system/engine/tmssDatabaseCfg.php` debe existir con la configuración del ambiente.
 
 ## Cómo analizar un flujo
 
@@ -354,7 +354,7 @@ Cada script puede contener `USE`, `CREATE` y dependencias específicas; el orden
 
 ## Validación
 
-El repositorio no incluye pruebas automatizadas, CI, contenedor ni build propio. La validación mínima de cada cambio debe incluir:
+El repositorio no incluye pruebas automatizadas ni CI. La validación mínima de cada cambio debe incluir:
 
 1. Revisar cambios de formato y espacios:
 
@@ -375,7 +375,14 @@ El repositorio no incluye pruebas automatizadas, CI, contenedor ni build propio.
 4. Probar en SQL Server de desarrollo: login, permisos, flujo afectado y validaciones de error.
 5. Probar los listados, respuestas AJAX y sesión del módulo afectado.
 
-Antes de desplegar, confirmar document root, permisos de logs y configuración local de conexión del ambiente de destino.
+Cuando Docker esté disponible, validar además la composición elegida antes del build:
+
+```sh
+docker compose -f docker/debian/docker-compose.yml config
+docker compose -f docker/alpine/docker-compose.yml config
+```
+
+Antes de desplegar, confirmar document root, permisos de logs y configuración local de conexión del ambiente de destino. En los perfiles Docker, `tmssDatabaseCfg.php` debe estar en `src/customers/system/engine/` antes de construir la imagen; como queda dentro del artefacto de PHP, el registro de imágenes debe ser privado.
 
 ## Convención de commits
 

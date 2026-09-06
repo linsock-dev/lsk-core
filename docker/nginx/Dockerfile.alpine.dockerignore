@@ -1,0 +1,9 @@
+# Nginx necesita únicamente el document root y su configuración.
+**
+!src/
+!src/customers/
+!src/customers/wwwroot/
+!src/customers/wwwroot/**
+!docker/
+!docker/nginx/
+!docker/nginx/default.conf

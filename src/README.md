@@ -43,6 +43,23 @@ No hay un manifiesto único de Composer o npm en la raíz: las bibliotecas de fr
 
 La configuración general se carga desde `customers/system/config/tmssOnLine.php`. Los logs se escriben en `customers/system/logs/`; ese directorio no está versionado, por lo que debe crearse en cada despliegue y ser escribible por el usuario del servidor web.
 
+## Despliegue con Docker
+
+Desde la raíz del repositorio hay perfiles Nginx + PHP-FPM para Alpine y Debian
+en [`../docker/`](../docker/README.md). Antes de construir cualquiera de ellos,
+la configuración de SQL Server debe existir en
+`customers/system/engine/tmssDatabaseCfg.php`, que es la ubicación estándar que
+carga la aplicación. El Dockerfile incorpora `customers/` tal como está; Compose
+no monta ni genera ese archivo.
+
+```sh
+docker compose -f docker/debian/docker-compose.yml up -d --build
+```
+
+Ejecutar el comando desde la raíz del repositorio. Para Alpine, reemplazar
+`debian` por `alpine`. Consultar [`../docker/README.md`](../docker/README.md)
+para variables, actualización, logs y detención.
+
 ## Puntos de entrada
 
 - `customers/wwwroot/index.php`: entrada web principal (versión declarada: `2.0.0`). Inicializa configuración, registro de servicios, sesión, request, response, base de datos, seguridad, idioma y documento.
