@@ -17,9 +17,10 @@ TEMASIS/
 |       |-- view/default/                # Vistas PHP/HTML (.frm)
 |       `-- language/                    # Textos e idioma
 |-- engine/                              # Copia de soporte del motor
-|-- tmmsStored/                          # Stored procedures SQL Server
-|-- tmssFunctions/                       # Funciones SQL Server
-`-- tmssTables/                          # Definiciones de tablas
+`-- batabase/                            # Scripts SQL Server
+    |-- tmmsStored/                      # Stored procedures
+    |-- tmssFunctions/                   # Funciones compartidas
+    `-- tmssTables/                      # Definiciones de tablas
 ```
 
 El código cargado por la aplicación es `customers/system/engine/`, no `engine/`. Ambos árboles contienen el motor; `engine/` además conserva `tmssDatabaseCfg.example.php`, la plantilla de conexión.
@@ -85,17 +86,17 @@ El módulo `admbus` permite seguir la relación completa entre capas:
 ```text
 customers/tmssOnLine/controller/admbus.php
   -> customers/tmssOnLine/model/admbus.php
-     -> tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
-        -> tmssTables/dbo.ADM_BUS.Table.sql
+     -> batabase/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
+        -> batabase/tmssTables/dbo.ADM_BUS.Table.sql
 ```
 
 Las acciones más habituales son `01` (alta), `02` (modificación), `03` (consulta), `04` (baja) y `08` (listado). No todos los controllers implementan exactamente el mismo conjunto: revisar el controller y su stored procedure antes de reutilizar una acción.
 
 ## Base de datos
 
-- `tmmsStored/` contiene los stored procedures; muchos reciben `@lp_sysoperation` para seleccionar la operación.
-- `tmssFunctions/` contiene funciones compartidas, incluidas validaciones de autorización y utilidades para sentencias dinámicas.
-- `tmssTables/` contiene las definiciones de tablas.
+- `batabase/tmmsStored/` contiene los stored procedures; muchos reciben `@lp_sysoperation` para seleccionar la operación.
+- `batabase/tmssFunctions/` contiene funciones compartidas, incluidas validaciones de autorización y utilidades para sentencias dinámicas.
+- `batabase/tmssTables/` contiene las definiciones de tablas.
 
 Los scripts SQL pueden tener codificación UTF-16 LE. Preservar su codificación al editarlos para evitar diffs masivos o archivos que SQL Server no pueda interpretar.
 
@@ -109,5 +110,5 @@ customers/system/engine/tmssSecurity.php
 customers/tmssOnLine/controller/admbus.php
 customers/tmssOnLine/model/admbus.php
 customers/tmssOnLine/view/default/admbus.frm
-tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
+batabase/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
 ```
