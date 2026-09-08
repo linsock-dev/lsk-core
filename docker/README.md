@@ -12,11 +12,18 @@ redes y volúmenes son distintos para que no compartan logs accidentalmente.
 ## Preparación común
 
 Antes de construir la imagen, la configuración estándar de la aplicación debe
-estar disponible en `src/customers/system/engine/tmssDatabaseCfg.php`. Docker no
-crea, copia ni monta ese archivo de forma separada: el `COPY src/customers` del
-Dockerfile toma el árbol de la aplicación tal como está. Si SQL Server usa un
-certificado interno o autofirmado, instale su CA en la imagen antes de producción;
-no desactive la validación TLS como solución permanente.
+estar disponible en `src/customers/system/engine/tmssDatabaseCfg.php` y debe
+apuntar al core, no a una base de cliente. Docker no crea, copia ni monta ese
+archivo de forma separada: el `COPY src/customers` del Dockerfile toma el árbol
+de la aplicación tal como está.
+
+En tiempo de ejecución, la aplicación consulta `SYS_CNX` en el core mediante
+`SYS_CNX_DEF` y con el identificador `bsecnx` abre la base del cliente. Por ello,
+el contenedor PHP necesita conectividad al core y a todas las bases de clientes
+habilitadas. Cada cliente requiere una fila activa en `SYS_CNX` cuyos datos de
+servidor, base y credenciales sean válidos. Si SQL Server usa un certificado
+interno o autofirmado, instale su CA en la imagen antes de producción; no
+desactive la validación TLS como solución permanente.
 
 Como el archivo forma parte de la imagen resultante, trátela como un artefacto
 privado: no la publique en un registro público. Todo cambio de la configuración
@@ -103,8 +110,9 @@ docker compose -f docker/debian/docker-compose.yml logs -f php nginx
 Los logs propios de la aplicación persisten en el volumen `lsk-core-<variante>-logs`.
 Las imágenes de PHP y Nginx se construyen con la misma revisión del código; Nginx
 expone únicamente `/var/www/customers/wwwroot`. PHP utiliza el archivo de
-credenciales que ya está en `src/customers/system/engine/tmssDatabaseCfg.php` al
-momento de construir la imagen.
+credenciales del core que ya está en
+`src/customers/system/engine/tmssDatabaseCfg.php` al momento de construir la
+imagen y resuelve las conexiones de clientes desde `SYS_CNX`.
 
 Antes de exponer el puerto a Internet, publique Nginx detrás de un proxy TLS o
 añada certificados y una configuración HTTPS. Ajuste los límites de PHP y

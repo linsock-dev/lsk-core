@@ -10,11 +10,13 @@ Se requiere PHP 8.1+, la extensión `sqlsrv`, acceso a SQL Server y un servidor 
 
 1. Crear `src/customers/system/logs/` con permisos de escritura para el servidor web.
 2. Copiar `src/engine/tmssDatabaseCfg.example.php` a `src/customers/system/engine/tmssDatabaseCfg.php`.
-3. Completar las credenciales locales de SQL Server.
+3. Completar las credenciales locales del core de SQL Server.
 4. Verificar que `tmssDatabaseCfg.php`, tokens, certificados y otros secretos no se incorporen a Git.
 5. No usar valores de configuración de clientes existentes para crear secretos nuevos.
 
-No hay un manifiesto raíz de Composer o npm. Las dependencias se sirven desde `src/customers/wwwroot/library/`. Para ejecutar la aplicación en contenedores, hay perfiles Nginx + PHP-FPM en [`docker/README.md`](docker/README.md); antes del build, `src/customers/system/engine/tmssDatabaseCfg.php` debe existir con la configuración del ambiente.
+No hay un manifiesto raíz de Composer o npm. Las dependencias se sirven desde `src/customers/wwwroot/library/`. Para ejecutar la aplicación en contenedores, hay perfiles Nginx + PHP-FPM en [`docker/README.md`](docker/README.md); antes del build, `src/customers/system/engine/tmssDatabaseCfg.php` debe existir con la configuración del core del ambiente.
+
+La aplicación usa dos tipos de conexión: el core en el índice `0` y la base del cliente normalmente en el índice `1`. `tmssDatabaseCfg.php` solo contiene la conexión al core. Para abrir la base de un cliente, el motor usa `bsecnx` para buscar una fila activa en `SYS_CNX` mediante `SYS_CNX_DEF`; esa fila contiene la conexión del cliente. Una entrada en `system/config/tmssOnLine.php` y `SYS_CNX.SysCnxCodExt` deben compartir el mismo `bsecnx`.
 
 ## Cómo analizar un flujo
 
@@ -31,8 +33,8 @@ Vista / enlace (prg, act, prm_*)
 1. Identificar `prg` y `act` en la vista, enlace o llamada AJAX.
 2. Abrir el controlador en `src/customers/tmssOnLine/controller/`.
 3. Identificar el modelo cargado por el controlador.
-4. Revisar el procedimiento llamado desde el modelo en `src/batabase/tmmsStored/`.
-5. Revisar sus tablas en `src/batabase/tmssTables/` y sus funciones dependientes en `src/batabase/tmssFunctions/`.
+4. Identificar la base del procedimiento: los llamados con índice `0` usan `src/batabase/core/`; los demás, `src/batabase/customers/`.
+5. Revisar el procedimiento, sus tablas y funciones dentro de ese mismo grupo de scripts.
 6. Volver a la vista `.frm` para validar los parámetros, la respuesta y el comportamiento de JavaScript.
 
 No inferir operaciones, parámetros o permisos por el nombre de un procedimiento: están definidos en su script SQL.
@@ -75,8 +77,8 @@ Reglas complementarias:
 
 Usar `ADM_BUS` como referencia y mantener todas las capas coherentes:
 
-1. Crear o modificar la tabla en `src/batabase/tmssTables/`.
-2. Crear o modificar el procedimiento `dbo.<ENTIDAD>_DEF.StoredProcedure.sql` en `src/batabase/tmmsStored/`.
+1. Crear o modificar la tabla en `src/batabase/customers/tmssTables/`.
+2. Crear o modificar el procedimiento `dbo.<ENTIDAD>_DEF.StoredProcedure.sql` en `src/batabase/customers/tmmsStored/`.
 3. Implementar o adaptar el modelo PHP para preparar parámetros y llamar al procedimiento.
 4. Implementar el controlador que valide sesión, procese `act` y entregue una vista o JSON.
 5. Crear o adaptar la vista dentro de `src/customers/tmssOnLine/view/default/`.
@@ -91,7 +93,7 @@ El siguiente ejemplo es una plantilla de referencia para una entidad simple. Sup
 
 #### 1. Stored procedure
 
-Crear `src/batabase/tmmsStored/dbo.ADM_FOO_DEF.StoredProcedure.sql` y conservar UTF-16 LE. El procedimiento recibe la operación, el usuario y la empresa; valida autorización antes de operar.
+Crear `src/batabase/customers/tmmsStored/dbo.ADM_FOO_DEF.StoredProcedure.sql` y conservar UTF-16 LE. El procedimiento recibe la operación, el usuario y la empresa; valida autorización antes de operar.
 
 ```sql
 CREATE PROCEDURE [dbo].[ADM_FOO_DEF]
@@ -333,13 +335,13 @@ Antes de modificar un script:
 4. Incluir en el mismo cambio todos los scripts afectados.
 5. Probar en una base no productiva, con una cuenta de permisos mínimos.
 
-No existe un runner de migraciones. Al preparar una instalación manual, revisar el contenido de cada script y aplicar normalmente en este orden:
+No existe un runner de migraciones. Antes de cambiar SQL, definir si el objeto pertenece al core (`src/batabase/core/`) o a las bases de clientes (`src/batabase/customers/`). No mezclar scripts de ambos grupos en una misma base. Al preparar una instalación manual, revisar el contenido de cada script y aplicar normalmente en este orden:
 
 ```text
 tablas → funciones → stored procedures
 ```
 
-Cada script puede contener `USE`, `CREATE` y dependencias específicas; el orden anterior no sustituye esa revisión.
+Cada script puede contener `USE`, `CREATE` y dependencias específicas; el orden anterior no sustituye esa revisión. En el core, ejecutar las funciones `*.UserDefinedFunction.sql` de `tmssFunctions/` y los procedimientos de `tmmsStored/`: los procedimientos presentes en ambas carpetas son copias y no deben aplicarse dos veces.
 
 ## Reglas de seguridad
 
@@ -372,7 +374,7 @@ El repositorio no incluye pruebas automatizadas ni CI. La validación mínima de
    ```
 
 3. Revisar los SQL modificados sin alterar UTF-16 LE.
-4. Probar en SQL Server de desarrollo: login, permisos, flujo afectado y validaciones de error.
+4. Probar en SQL Server de desarrollo: login, permisos, flujo afectado y validaciones de error. Si el flujo usa una base de cliente, comprobar además el `bsecnx` de configuración y su fila activa en `SYS_CNX` del core.
 5. Probar los listados, respuestas AJAX y sesión del módulo afectado.
 
 Cuando Docker esté disponible, validar además la composición elegida antes del build:

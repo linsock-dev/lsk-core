@@ -18,9 +18,14 @@ TEMASIS/
 |       `-- language/                    # Textos e idioma
 |-- engine/                              # Copia de soporte del motor
 `-- batabase/                            # Scripts SQL Server
-    |-- tmmsStored/                      # Stored procedures
-    |-- tmssFunctions/                   # Funciones compartidas
-    `-- tmssTables/                      # Definiciones de tablas
+    |-- core/                            # Base central del sistema
+    |   |-- tmmsStored/                  # Stored procedures
+    |   |-- tmssFunctions/               # Funciones compartidas
+    |   `-- tmssTables/                  # Definiciones de tablas
+    `-- customers/                       # Base de cada cliente
+        |-- tmmsStored/                  # Stored procedures
+        |-- tmssFunctions/               # Funciones compartidas
+        `-- tmssTables/                  # Definiciones de tablas
 ```
 
 El código cargado por la aplicación es `customers/system/engine/`, no `engine/`. Ambos árboles contienen el motor; `engine/` además conserva `tmssDatabaseCfg.example.php`, la plantilla de conexión.
@@ -37,11 +42,23 @@ No hay un manifiesto único de Composer o npm en la raíz: las bibliotecas de fr
 ## Configuración local
 
 1. Copiar `engine/tmssDatabaseCfg.example.php` a `customers/system/engine/tmssDatabaseCfg.php`.
-2. Completar servidor, base, usuario y contraseña de SQL Server.
+2. Completar servidor, base, usuario y contraseña del core de SQL Server.
 3. Mantener ese archivo fuera de Git: está excluido por `.gitignore` porque contiene secretos.
 4. Configurar el virtual host para servir `customers/wwwroot/`.
 
 La configuración general se carga desde `customers/system/config/tmssOnLine.php`. Los logs se escriben en `customers/system/logs/`; ese directorio no está versionado, por lo que debe crearse en cada despliegue y ser escribible por el usuario del servidor web.
+
+## Conexiones de base de datos
+
+El sistema trabaja con un core y una base por cliente. `tmssDatabaseCfg.php` abre el core en el índice de conexión `0`; no debe apuntar a una base de cliente.
+
+Al atender una operación de cliente, `tmssDatabase` toma el identificador `bsecnx`, consulta `SYS_CNX_DEF` en el core y obtiene la fila activa correspondiente de `SYS_CNX`. Los campos `SysCnxSrv`, `SysCnxDb`, `SysCnxUsr` y `SysCnxPwd` de esa fila abren la conexión del cliente, normalmente en el índice `1`. Las llamadas a base de datos sin índice explícito usan el cliente; las que usan `0` permanecen en el core.
+
+```text
+tmssDatabaseCfg.php → core (0) → SYS_CNX_DEF / SYS_CNX → cliente (1)
+```
+
+La configuración `customers` de `system/config/tmssOnLine.php` vincula cada acceso con su `connection` (`bsecnx`). Ese valor debe coincidir con `SysCnxCodExt` de una fila activa en `SYS_CNX`.
 
 ## Despliegue con Docker
 
@@ -76,7 +93,7 @@ index.php?prg=admbus&act=08&prm_buscod=...
 1. `index.php` construye un `tmssRegistry` y registra los servicios compartidos.
 2. `tmssLoader` resuelve el controller en `customers/tmssOnLine/controller/`.
 3. El controller procesa `act`, valida la sesión y carga el model que necesita.
-4. El model ejecuta consultas o stored procedures con `tmssDatabase` y `sqlsrv`.
+4. El model ejecuta consultas o stored procedures con `tmssDatabase` y `sqlsrv`, en el core o en la base del cliente según el índice de conexión.
 5. El controller devuelve una vista `.frm`, una grilla o una respuesta para AJAX.
 
 Si no se recibe `prg`, el punto de entrada comprueba el login, construye el menú y renderiza el layout principal.
@@ -103,17 +120,21 @@ El módulo `admbus` permite seguir la relación completa entre capas:
 ```text
 customers/tmssOnLine/controller/admbus.php
   -> customers/tmssOnLine/model/admbus.php
-     -> batabase/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
-        -> batabase/tmssTables/dbo.ADM_BUS.Table.sql
+     -> batabase/customers/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
+        -> batabase/customers/tmssTables/dbo.ADM_BUS.Table.sql
 ```
 
 Las acciones más habituales son `01` (alta), `02` (modificación), `03` (consulta), `04` (baja) y `08` (listado). No todos los controllers implementan exactamente el mismo conjunto: revisar el controller y su stored procedure antes de reutilizar una acción.
 
 ## Base de datos
 
-- `batabase/tmmsStored/` contiene los stored procedures; muchos reciben `@lp_sysoperation` para seleccionar la operación.
-- `batabase/tmssFunctions/` contiene funciones compartidas, incluidas validaciones de autorización y utilidades para sentencias dinámicas.
-- `batabase/tmssTables/` contiene las definiciones de tablas.
+- `batabase/core/` contiene el esquema y las reglas de la base central; sus scripts actuales usan `tmssSysPrd`.
+- `batabase/customers/` contiene el esquema y reglas que se instalan en cada base de cliente; sus scripts actuales usan `tmssTeam2`.
+- Cada grupo se organiza en `tmmsStored/`, `tmssFunctions/` y `tmssTables/`.
+
+Los scripts crean objetos pero todavía no incluyen datos iniciales. En particular, la tabla central `SYS_CNX` debe contar con una fila activa por cliente para que el sistema pueda resolver su conexión.
+
+Para instalar un grupo, crear primero la base que figura en sus sentencias `USE` y aplicar tablas, funciones y procedimientos. En `core/tmssFunctions/`, ejecutar solo los ocho archivos `*.UserDefinedFunction.sql`: los demás son copias de los procedimientos ya presentes en `core/tmmsStored/`.
 
 Los scripts SQL pueden tener codificación UTF-16 LE. Preservar su codificación al editarlos para evitar diffs masivos o archivos que SQL Server no pueda interpretar.
 
@@ -127,5 +148,5 @@ customers/system/engine/tmssSecurity.php
 customers/tmssOnLine/controller/admbus.php
 customers/tmssOnLine/model/admbus.php
 customers/tmssOnLine/view/default/admbus.frm
-batabase/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
+batabase/customers/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
 ```

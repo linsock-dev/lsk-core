@@ -66,9 +66,14 @@ El arranque registra configuración, logging, sesión, request, response, base d
     │       └── language/                # Textos e idioma
     ├── engine/                          # Copia del motor y plantilla de conexión
     └── batabase/                        # Fuente de verdad de la capa SQL
-        ├── tmssTables/                  # 425 definiciones de tablas
-        ├── tmssFunctions/               # 19 funciones compartidas
-        └── tmmsStored/                  # 375 stored procedures
+        ├── core/                        # Base central del sistema
+        │   ├── tmssTables/
+        │   ├── tmssFunctions/
+        │   └── tmmsStored/
+        └── customers/                   # Base de cada cliente
+            ├── tmssTables/
+            ├── tmssFunctions/
+            └── tmmsStored/
 ```
 
 `src/customers/system/engine/` es la copia del motor que carga la aplicación. `src/engine/` se conserva como soporte y contiene `tmssDatabaseCfg.example.php`, la plantilla de configuración de SQL Server.
@@ -101,11 +106,38 @@ Los nombres de archivos comienzan con un prefijo de tres letras que identifica e
 
 ## Base de datos
 
-La carpeta se denomina deliberadamente `batabase` por la estructura actual del repositorio. Contiene los artefactos necesarios para analizar una funcionalidad sin conectarse a SQL Server:
+La carpeta se denomina deliberadamente `batabase` por la estructura actual del repositorio. Sus scripts están separados por la base de datos en la que deben ejecutarse:
 
-- `src/batabase/tmssTables/`: una tabla por script, por ejemplo `dbo.ADM_BUS.Table.sql`.
-- `src/batabase/tmssFunctions/`: funciones reutilizables, entre ellas autorización, restricciones por usuario, conversión y construcción de consultas.
-- `src/batabase/tmmsStored/`: procedimientos de negocio, por ejemplo `dbo.ADM_BUS_DEF.StoredProcedure.sql`.
+| Base | Scripts | Uso |
+| --- | --- | --- |
+| Core | `src/batabase/core/` | Registro central del sistema, configuración y conexiones de clientes. Los scripts actuales usan `tmssSysPrd`. |
+| Cliente | `src/batabase/customers/` | Datos y reglas de negocio de cada cliente. Los scripts actuales fueron exportados para `tmssTeam2`. |
+
+Cada una contiene `tmssTables/` (tablas), `tmssFunctions/` (funciones) y `tmmsStored/` (stored procedures). Una funcionalidad de negocio habitual debe buscarse en `customers/`; los modelos que indican explícitamente el índice de conexión `0` usan el core.
+
+### Uso de las dos bases
+
+`tmssDatabaseCfg.php` no configura la base de un cliente: configura solamente el **core**. La aplicación abre esa conexión como índice `0` y la conserva para los módulos centrales.
+
+Cuando un flujo necesita datos de un cliente, la aplicación toma `bsecnx` de la entrada o de la configuración del cliente, consulta en el core `SYS_CNX_DEF` con la operación `09` y busca una fila activa de `SYS_CNX` cuyo `SysCnxCodExt` coincida. Esa fila provee `SysCnxSrv`, `SysCnxDb`, `SysCnxUsr` y `SysCnxPwd`; con ellos se abre la conexión del cliente, normalmente en el índice `1`. Las llamadas que no especifican un índice se ejecutan sobre esa conexión de cliente.
+
+```text
+tmssDatabaseCfg.php
+  → core (índice 0)
+    → SYS_CNX_DEF('09', ..., bsecnx)
+      → SYS_CNX: servidor, base y credenciales del cliente
+        → base del cliente (índice 1)
+```
+
+Para registrar un cliente hacen falta dos referencias que deben usar el mismo `bsecnx`: la entrada de `src/customers/system/config/tmssOnLine.php` y una fila activa de `SYS_CNX` en el core. Sin esa fila la aplicación no puede abrir la base del cliente.
+
+Los scripts crean objetos, pero actualmente no incluyen datos iniciales. La carga inicial del core, incluido `SYS_CNX`, se incorporará por separado.
+
+### Instalación de esquemas
+
+Los scripts incluyen su propio `USE`; crear antes la base de datos indicada en cada grupo y no mezclar scripts de `core/` y `customers/`. Para una instalación manual, aplicar cada grupo en el orden **tablas → funciones → procedimientos**, después de revisar dependencias.
+
+En `src/batabase/core/tmssFunctions/` hay ocho funciones y copias de los 42 procedimientos de `core/tmmsStored/`. Al instalar el core, ejecutar las funciones `*.UserDefinedFunction.sql` de esa carpeta y los procedimientos desde `core/tmmsStored/`; ejecutar ambas copias de procedimientos provocaría errores de objeto ya existente.
 
 Los scripts están codificados mayormente como **UTF-16 LE**. No deben convertirse a UTF-8 al editarlos: hacerlo genera diffs masivos y puede afectar su ejecución en SQL Server.
 
@@ -116,8 +148,8 @@ El modelo PHP `admbus` ilustra el vínculo entre capas:
 ```text
 src/customers/tmssOnLine/controller/admbus.php
   → src/customers/tmssOnLine/model/admbus.php
-    → src/batabase/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
-      → src/batabase/tmssTables/dbo.ADM_BUS.Table.sql
+    → src/batabase/customers/tmmsStored/dbo.ADM_BUS_DEF.StoredProcedure.sql
+      → src/batabase/customers/tmssTables/dbo.ADM_BUS.Table.sql
 ```
 
 La mayoría de los procedimientos recibe `@lp_sysoperation`. Las operaciones frecuentes son:
@@ -133,7 +165,7 @@ La mayoría de los procedimientos recibe `@lp_sysoperation`. Las operaciones fre
 
 La autorización se resuelve principalmente en SQL con `dbo.CheckAuthorization`, y los listados suelen utilizar `dbo.GetSQLSentence` y `dbo.GetUserRestrictions`. Una modificación debe conservar o reforzar esos controles; nunca asumir que el control del controlador PHP es suficiente.
 
-No existe un mecanismo de migraciones ni un runner de SQL versionado. Para instalar o revisar un cambio manualmente, verificar dependencias y aplicar, como regla general, el orden **tablas → funciones → procedimientos**. Cada script contiene además su propio `USE`, `CREATE` y dependencias que deben revisarse antes de ejecutarlo.
+No existe un mecanismo de migraciones ni un runner de SQL versionado. Cada script contiene además su propio `USE`, `CREATE` y dependencias que deben revisarse antes de ejecutarlo.
 
 ## Requisitos y configuración local
 
@@ -149,11 +181,11 @@ No existe un mecanismo de migraciones ni un runner de SQL versionado. Para insta
 
 1. Crear el directorio de logs si aún no existe.
 2. Copiar `src/engine/tmssDatabaseCfg.example.php` a `src/customers/system/engine/tmssDatabaseCfg.php`.
-3. Completar servidor, base, usuario y contraseña en el archivo local creado.
+3. Completar servidor, base, usuario y contraseña del **core** en el archivo local creado.
 4. Mantener ese archivo fuera de los commits y verificar que el mecanismo local de ignore lo cubra antes de trabajar con secretos.
 5. Configurar el virtual host para servir únicamente `src/customers/wwwroot/`.
 
-La configuración general se carga desde `src/customers/system/config/tmssOnLine.php`. No usar sus valores de clientes ni datos de conexión como plantilla de secretos nuevos.
+La configuración general se carga desde `src/customers/system/config/tmssOnLine.php`. Sus entradas de clientes aportan el identificador `connection` (`bsecnx`); las credenciales de cada cliente se resuelven desde `SYS_CNX` en el core. No usar esos valores como plantilla de secretos nuevos.
 
 ## Despliegue con Docker
 
@@ -163,9 +195,12 @@ las extensiones `sqlsrv` y `pdo_sqlsrv`; SQL Server debe ser externo y accesible
 desde el contenedor PHP.
 
 El archivo de conexión sigue estando exclusivamente en su ubicación normal,
-`src/customers/system/engine/tmssDatabaseCfg.php`. Debe existir y estar completo
-antes de construir la imagen. No hay mounts, generación ni copias de ese archivo
-en Compose; el Dockerfile incorpora el árbol `src/customers/` como aplicación.
+`src/customers/system/engine/tmssDatabaseCfg.php`. Debe contener las credenciales
+del core y existir antes de construir la imagen. Durante la ejecución, el core
+resuelve desde `SYS_CNX` la conexión de cada cliente; por eso el contenedor PHP
+debe alcanzar tanto el core como las bases de clientes que utilizará. No hay
+mounts, generación ni copias de ese archivo en Compose; el Dockerfile incorpora
+el árbol `src/customers/` como aplicación.
 Por contener credenciales, la imagen resultante debe tratarse como privada.
 
 Desde la raíz del repositorio, por ejemplo para Debian:
