@@ -343,6 +343,8 @@ tablas → funciones → stored procedures
 
 Cada script puede contener `USE`, `CREATE` y dependencias específicas; el orden anterior no sustituye esa revisión. En el core, ejecutar las funciones `*.UserDefinedFunction.sql` de `tmssFunctions/` y los procedimientos de `tmmsStored/`: los procedimientos presentes en ambas carpetas son copias y no deben aplicarse dos veces.
 
+Para inicializar un core y una base de cliente vacíos, usar [`src/batabase/initial-data/001-bootstrap.sql`](src/batabase/initial-data/001-bootstrap.sql) después del DDL. Sus parámetros y las limitaciones del bootstrap están documentados en [`src/batabase/initial-data/README.md`](src/batabase/initial-data/README.md).
+
 ## Reglas de seguridad
 
 - Validar sesión en los controladores y conservar la autorización en SQL Server.

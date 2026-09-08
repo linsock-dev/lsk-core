@@ -70,10 +70,11 @@ El arranque registra configuración, logging, sesión, request, response, base d
         │   ├── tmssTables/
         │   ├── tmssFunctions/
         │   └── tmmsStored/
-        └── customers/                   # Base de cada cliente
-            ├── tmssTables/
-            ├── tmssFunctions/
-            └── tmmsStored/
+        ├── customers/                   # Base de cada cliente
+        │   ├── tmssTables/
+        │   ├── tmssFunctions/
+        │   └── tmmsStored/
+        └── initial-data/                # Bootstrap de core y cliente
 ```
 
 `src/customers/system/engine/` es la copia del motor que carga la aplicación. `src/engine/` se conserva como soporte y contiene `tmssDatabaseCfg.example.php`, la plantilla de configuración de SQL Server.
@@ -131,7 +132,9 @@ tmssDatabaseCfg.php
 
 Para registrar un cliente hacen falta dos referencias que deben usar el mismo `bsecnx`: la entrada de `src/customers/system/config/tmssOnLine.php` y una fila activa de `SYS_CNX` en el core. Sin esa fila la aplicación no puede abrir la base del cliente.
 
-Los scripts crean objetos, pero actualmente no incluyen datos iniciales. La carga inicial del core, incluido `SYS_CNX`, se incorporará por separado.
+Las suscripciones usan una segunda relación: `SLS_CUS.CusCodExt` del core debe coincidir con el `BusCod` de `ADM_BUS` en la base del cliente y con el campo `buscod` de su entrada de configuración. Ese código de empresa no reemplaza a `bsecnx`; uno identifica la empresa y el otro identifica su conexión.
+
+Los scripts de esquema crean objetos. El bootstrap de un core y un cliente está en [`src/batabase/initial-data/`](src/batabase/initial-data/README.md); incluye `SYS_CNX`, la suscripción mínima y un administrador inicial, pero no reemplaza la carga funcional de cada módulo.
 
 ### Instalación de esquemas
 

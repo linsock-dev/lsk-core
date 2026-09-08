@@ -22,10 +22,11 @@ TEMASIS/
     |   |-- tmmsStored/                  # Stored procedures
     |   |-- tmssFunctions/               # Funciones compartidas
     |   `-- tmssTables/                  # Definiciones de tablas
-    `-- customers/                       # Base de cada cliente
-        |-- tmmsStored/                  # Stored procedures
-        |-- tmssFunctions/               # Funciones compartidas
-        `-- tmssTables/                  # Definiciones de tablas
+    |-- customers/                       # Base de cada cliente
+    |   |-- tmmsStored/                  # Stored procedures
+    |   |-- tmssFunctions/               # Funciones compartidas
+    |   `-- tmssTables/                  # Definiciones de tablas
+    `-- initial-data/                    # Bootstrap de core y cliente
 ```
 
 El código cargado por la aplicación es `customers/system/engine/`, no `engine/`. Ambos árboles contienen el motor; `engine/` además conserva `tmssDatabaseCfg.example.php`, la plantilla de conexión.
@@ -59,6 +60,8 @@ tmssDatabaseCfg.php → core (0) → SYS_CNX_DEF / SYS_CNX → cliente (1)
 ```
 
 La configuración `customers` de `system/config/tmssOnLine.php` vincula cada acceso con su `connection` (`bsecnx`). Ese valor debe coincidir con `SysCnxCodExt` de una fila activa en `SYS_CNX`.
+
+Las suscripciones del core se resuelven por empresa: `SLS_CUS.CusCodExt` debe coincidir con el `BusCod` de `ADM_BUS` de la base del cliente y con `customers.*.buscod` en la configuración. No es el mismo valor que `bsecnx`.
 
 ## Despliegue con Docker
 
@@ -132,7 +135,7 @@ Las acciones más habituales son `01` (alta), `02` (modificación), `03` (consul
 - `batabase/customers/` contiene el esquema y reglas que se instalan en cada base de cliente; sus scripts actuales usan `tmssTeam2`.
 - Cada grupo se organiza en `tmmsStored/`, `tmssFunctions/` y `tmssTables/`.
 
-Los scripts crean objetos pero todavía no incluyen datos iniciales. En particular, la tabla central `SYS_CNX` debe contar con una fila activa por cliente para que el sistema pueda resolver su conexión.
+Los scripts de esquema crean objetos. El bootstrap de un core y un cliente está en [`batabase/initial-data/`](batabase/initial-data/README.md); inserta la fila central `SYS_CNX`, la suscripción mínima y un administrador inicial. La carga funcional de cada módulo se mantiene como una tarea posterior.
 
 Para instalar un grupo, crear primero la base que figura en sus sentencias `USE` y aplicar tablas, funciones y procedimientos. En `core/tmssFunctions/`, ejecutar solo los ocho archivos `*.UserDefinedFunction.sql`: los demás son copias de los procedimientos ya presentes en `core/tmmsStored/`.
 
