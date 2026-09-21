@@ -21,7 +21,7 @@ El script presupone que el core y la base del cliente residen en la misma instan
 3. Instalar la base del cliente desde [`../customers/`](../customers/): tablas, funciones y procedimientos.
 4. Ejecutar el script con `sqlcmd`, proporcionando `MSSQL_SA_PASSWORD` como se indica arriba.
 5. Crear o ajustar la entrada de desarrollo en `src/customers/system/config/tmssOnLine.php`: su `connection` debe ser `X000080192` y su `buscod` debe ser `LINSOCK_HLT`.
-7. Configurar [tmssDatabaseCfg.php](../../customers/system/engine/tmssDatabaseCfg.php) para conectarse al core, nunca directamente a la base del cliente.
+6. Configurar [tmssDatabaseCfg.php](../../customers/system/engine/tmssDatabaseCfg.php) para conectarse al core, nunca directamente a la base del cliente.
 
 Los valores de `@CoreDatabase` y `@CustomerDatabase` deben coincidir con las bases realmente instaladas. Si se cambian, también se debe ejecutar o adaptar el esquema cuyos scripts contienen `USE` con esos nombres.
 
