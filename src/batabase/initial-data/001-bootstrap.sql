@@ -1,5 +1,5 @@
 /*
-  Datos iniciales para una instalación vacía de TEMASIS.
+  Datos iniciales para una instalación vacía de LINSOCK.
 
   Ejecute este archivo después de instalar los objetos de:
     - ../core/
@@ -9,9 +9,9 @@
   instancia de SQL Server. Si el cliente está en otra instancia, adaptar el
   bloque de cliente y registrar su conexión y suscripción desde el core.
 
-  No contiene secretos reales. Reemplace todos los valores marcados como
-  REEMPLAZAR antes de ejecutarlo. La contraseña se guarda como SHA-256 de su
-  versión en mayúsculas, igual que el formulario de acceso por defecto.
+  Está preconfigurado para el cliente local Dev Salud. La contraseña se recibe
+  como la variable sqlcmd MSSQL_SA_PASSWORD, se registra para la conexión del
+  cliente y se guarda como SHA-256 para el usuario ADMIN.
 */
 
 SET NOCOUNT ON;
@@ -20,16 +20,16 @@ SET XACT_ABORT ON;
 DECLARE @CoreDatabase sysname = N'tmssSysPrd';
 DECLARE @CustomerDatabase sysname = N'tmssTeam2';
 
-DECLARE @ConnectionCode nvarchar(10) = N'REEMPLAZAR';
-DECLARE @CustomerBusinessCode nvarchar(20) = N'REEMPLAZAR';
-DECLARE @CustomerName nvarchar(50) = N'REEMPLAZAR';
-DECLARE @CustomerSqlServer nvarchar(50) = N'REEMPLAZAR';
-DECLARE @CustomerSqlUser nvarchar(50) = N'REEMPLAZAR';
-DECLARE @CustomerSqlPassword nvarchar(50) = N'REEMPLAZAR';
+DECLARE @ConnectionCode nvarchar(10) = N'X000080192';
+DECLARE @CustomerBusinessCode nvarchar(20) = N'LINSOCK_HLT';
+DECLARE @CustomerName nvarchar(50) = N'Linsock';
+DECLARE @CustomerSqlServer nvarchar(50) = N'127.0.0.1';
+DECLARE @CustomerSqlUser nvarchar(50) = N'Sa';
+DECLARE @CustomerSqlPassword nvarchar(50) = N'$(MSSQL_SA_PASSWORD)';
 
 DECLARE @BootstrapUser nvarchar(15) = N'ADMIN';
 DECLARE @BootstrapUserName nvarchar(82) = N'Administrador inicial';
-DECLARE @BootstrapPassword nvarchar(128) = N'REEMPLAZAR';
+DECLARE @BootstrapPassword nvarchar(128) = N'$(MSSQL_SA_PASSWORD)';
 DECLARE @BootstrapGroup nvarchar(20) = N'ADMIN';
 
 IF DB_ID(@CoreDatabase) IS NULL
@@ -42,15 +42,10 @@ BEGIN
   ;THROW 51001, N'La base del cliente no existe.', 1;
 END;
 
-IF @ConnectionCode = N'REEMPLAZAR'
-   OR @CustomerBusinessCode = N'REEMPLAZAR'
-   OR @CustomerName = N'REEMPLAZAR'
-   OR @CustomerSqlServer = N'REEMPLAZAR'
-   OR @CustomerSqlUser = N'REEMPLAZAR'
-   OR @CustomerSqlPassword = N'REEMPLAZAR'
-   OR @BootstrapPassword = N'REEMPLAZAR'
+IF @CustomerSqlPassword = N'$(MSSQL_SA_PASSWORD)'
+   OR @BootstrapPassword = N'$(MSSQL_SA_PASSWORD)'
 BEGIN
-  ;THROW 51002, N'Reemplace todos los valores REEMPLAZAR antes de ejecutar el script.', 1;
+  ;THROW 51002, N'Proporcione MSSQL_SA_PASSWORD mediante sqlcmd.', 1;
 END;
 
 IF NULLIF(LTRIM(RTRIM(@ConnectionCode)), N'') IS NULL
@@ -115,10 +110,10 @@ BEGIN
 END;
 
 IF NOT EXISTS
-  (SELECT 1 FROM dbo.SLS_CUS WHERE BusCod = N''TEMASIS'' AND CusCodExt = @CustomerBusinessCode)
+  (SELECT 1 FROM dbo.SLS_CUS WHERE BusCod = N''LINSOCK'' AND CusCodExt = @CustomerBusinessCode)
 BEGIN
   INSERT INTO dbo.SLS_CUS (BusCod, CusCodExt, CusTxt, DocSts, CteDte, CteUsr)
-  VALUES (N''TEMASIS'', @CustomerBusinessCode, @CustomerName, N''A'', @Now, @BootstrapUser);
+  VALUES (N''LINSOCK'', @CustomerBusinessCode, @CustomerName, N''A'', @Now, @BootstrapUser);
 END;
 
 IF NOT EXISTS (SELECT 1 FROM dbo.SYS_APP_MDL WHERE CodMDL = N''SYS'')
@@ -186,7 +181,7 @@ DECLARE @SysFncCod int = (
 DECLARE @CusCod int = (
   SELECT TOP (1) CusCod
   FROM dbo.SLS_CUS
-  WHERE BusCod = N''TEMASIS'' AND CusCodExt = @CustomerBusinessCode
+  WHERE BusCod = N''LINSOCK'' AND CusCodExt = @CustomerBusinessCode
   ORDER BY CusCod
 );
 

@@ -4,7 +4,13 @@ Esta carpeta contiene el bootstrap mínimo para conectar un core vacío con una 
 
 ## Script disponible
 
-[`001-bootstrap.sql`](001-bootstrap.sql) crea de forma idempotente los registros base para un cliente. No contiene credenciales ni contraseñas reales: se deben completar sus variables antes de ejecutarlo.
+[`001-bootstrap.sql`](001-bootstrap.sql) crea de forma idempotente los registros base para el entorno local de Dev Salud. Registra la conexión `X000080192`, la empresa `LINSOCK_HLT` y la base `tmssTeam2` en `127.0.0.1` con el usuario `Sa`. La contraseña no se versiona: debe enviarse como variable de `sqlcmd` y se usa tanto para la conexión de cliente como para el usuario inicial `ADMIN`.
+
+Ejecutarlo con una cuenta que pueda insertar en ambas bases, proporcionando la misma contraseña para conectarse y para el bootstrap:
+
+```powershell
+sqlcmd -S 127.0.0.1 -U Sa -P '<clave>' -v MSSQL_SA_PASSWORD='<clave>' -i .\001-bootstrap.sql
+```
 
 El script presupone que el core y la base del cliente residen en la misma instancia de SQL Server, de modo que las dos cargas se confirman en una transacción. Si la base del cliente está en otra instancia, ejecutar allí las sentencias del bloque `@CustomerSql` y luego registrar la fila de `SYS_CNX` y los datos de suscripción en el core. Esos pasos no pueden formar una única transacción entre instancias sin una configuración adicional de SQL Server.
 
@@ -13,9 +19,8 @@ El script presupone que el core y la base del cliente residen en la misma instan
 1. Crear las bases de datos indicadas por los encabezados `USE` de los scripts: actualmente `tmssSysPrd` para el core y `tmssTeam2` para el cliente.
 2. Instalar el core desde [`../core/`](../core/): tablas, las funciones `*.UserDefinedFunction.sql` y los procedimientos de `tmmsStored/`.
 3. Instalar la base del cliente desde [`../customers/`](../customers/): tablas, funciones y procedimientos.
-4. Editar los parámetros del inicio de [`001-bootstrap.sql`](001-bootstrap.sql), en especial los códigos, el servidor, las credenciales de SQL Server y la contraseña inicial.
-5. Ejecutar el script con una cuenta que pueda insertar en ambas bases.
-6. Crear o ajustar la entrada correspondiente en `src/customers/system/config/tmssOnLine.php`. Su campo `connection` debe ser exactamente el mismo valor que `@ConnectionCode` y `buscod` debe coincidir con `@CustomerBusinessCode`.
+4. Ejecutar el script con `sqlcmd`, proporcionando `MSSQL_SA_PASSWORD` como se indica arriba.
+5. Crear o ajustar la entrada de desarrollo en `src/customers/system/config/tmssOnLine.php`: su `connection` debe ser `X000080192` y su `buscod` debe ser `LINSOCK_HLT`.
 7. Configurar [tmssDatabaseCfg.php](../../customers/system/engine/tmssDatabaseCfg.php) para conectarse al core, nunca directamente a la base del cliente.
 
 Los valores de `@CoreDatabase` y `@CustomerDatabase` deben coincidir con las bases realmente instaladas. Si se cambian, también se debe ejecutar o adaptar el esquema cuyos scripts contienen `USE` con esos nombres.
