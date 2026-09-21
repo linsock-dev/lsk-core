@@ -9,6 +9,35 @@ contenedor PHP.
 No ejecute los dos perfiles en el mismo puerto a la vez. Los nombres de proyecto,
 redes y volúmenes son distintos para que no compartan logs accidentalmente.
 
+## SQL Server local para desarrollo
+
+Ambas variantes incluyen un perfil opcional `development` que agrega SQL Server
+2022 Developer. Al iniciarlo se crean dos bases vacías en un volumen de Docker:
+`tmssSysPrd` (core) y `tmssTeam2` (cliente). El puerto se publica sólo en
+`localhost`, por lo que una herramienta local puede conectarse a
+`localhost,1433`, pero no queda abierto a la red.
+
+1. Copie `docker/.env.example` como `docker/.env` y reemplace
+   `MSSQL_SA_PASSWORD` por una contraseña fuerte. No versionar ese archivo.
+2. Configure `src/customers/system/engine/tmssDatabaseCfg.php` para el core
+   con servidor `sqlserver`, base `tmssSysPrd`, usuario `sa` y la misma
+   contraseña. Ese archivo se incorpora a la imagen PHP durante el build.
+3. Inicie una variante con el perfil de desarrollo:
+
+```sh
+docker compose --env-file docker/.env --profile development -f docker/debian/docker-compose.yml up -d --build
+```
+
+Cambie `debian` por `alpine` si corresponde. El inicializador crea las bases
+sólo si faltan; no borra ni reemplaza datos existentes. Luego instale los
+objetos SQL siguiendo el orden de
+[`src/batabase/initial-data/README.md`](../src/batabase/initial-data/README.md).
+
+El volumen mantiene la información aunque el servicio se detenga o se ejecute
+`docker compose down`. Para reiniciar completamente la base local, use
+`docker compose --env-file docker/.env --profile development -f docker/debian/docker-compose.yml down -v`;
+esa operación elimina los datos de desarrollo de forma irreversible.
+
 ## Preparación común
 
 Antes de construir la imagen, la configuración estándar de la aplicación debe

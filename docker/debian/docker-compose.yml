@@ -1,6 +1,28 @@
 name: lsk-core-debian
 
 services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    profiles: ["development"]
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Defina MSSQL_SA_PASSWORD en docker/.env}
+    ports:
+      - "127.0.0.1:${SQLSERVER_PORT:-1433}:1433"
+    volumes:
+      - lsk-core-debian-sqlserver:/var/opt/mssql
+      - ../sqlserver/001-create-databases.sql:/scripts/001-create-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - app
+
   php:
     build:
       context: ../..
@@ -37,3 +59,4 @@ networks:
 
 volumes:
   lsk-core-debian-logs:
+  lsk-core-debian-sqlserver:

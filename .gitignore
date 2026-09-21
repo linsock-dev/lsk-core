@@ -8,6 +8,7 @@
 /.env
 /.env.*
 !/.env.example
+/docker/.env
 
 # Metadatos del sistema operativo.
 .DS_Store
