@@ -1,0 +1,222 @@
+CLASES DE DOCUMENTOS EN EL SISTEMA
+
+¿Qué es una clase de documento?
+
+Una clase de documento es el perfil de configuración que define cómo debe comportarse una familia de objetos dentro del sistema.
+
+No representa un documento concreto ni una clase de programación. Es una configuración funcional que especializa un tipo de objeto.
+
+Por ejemplo, el tipo de objeto “Movimiento de stock” puede tener diferentes clases de documento:
+
+- Recepción de compra.
+- Entrada por devolución.
+- Entrega a cliente.
+- Transferencia entre depósitos.
+- Ajuste de inventario.
+- Anulación de una salida.
+
+Todos estos documentos comparten la misma estructura general de movimiento de stock, pero cada clase establece reglas y comportamientos diferentes.
+
+En términos simples:
+
+- El tipo de objeto define qué es el registro.
+- La clase de documento define cómo debe comportarse.
+- El documento es la instancia concreta creada por el usuario.
+
+RELACIÓN ENTRE TIPOS DE OBJETO, CLASES Y DOCUMENTOS
+
+La relación general es la siguiente:
+
+Tipo de objeto
+    |
+    +-- Clase de documento A
+    |       +-- Documento 1
+    |       +-- Documento 2
+    |
+    +-- Clase de documento B
+            +-- Documento 3
+
+Cada clase de documento pertenece a un tipo de objeto determinado. Un tipo de objeto puede tener varias clases de documento, pero una clase está asociada a un tipo de objeto específico.
+
+Los principales identificadores son:
+
+- ObjTyp: identifica el tipo de objeto.
+- SysDocClsCod: identifica la clase de documento.
+- El identificador propio del objeto, por ejemplo SlsOrdCod o StkMovCod, identifica el documento concreto.
+
+Por ejemplo:
+
+Tipo de objeto: SLS_ORD - Pedido de venta
+
+Clases posibles:
+- Pedido normal.
+- Pedido urgente.
+- Pedido de exportación.
+- Pedido interno.
+
+Cada pedido concreto guarda el código de la clase con la que fue creado.
+
+INFORMACIÓN PRINCIPAL DE UNA CLASE
+
+La clase de documento se almacena principalmente en la tabla SYS_DOC_CLS. Cada clase contiene:
+
+- Código interno.
+- Código externo.
+- Descripción.
+- Tipo de objeto.
+- Estado activo o inactivo.
+- Rango de numeración interna.
+- Rango de numeración externa.
+- Código de autorización.
+- Atributos estándar.
+- Atributos personalizados.
+- Empresa o ámbito de negocio.
+
+Los rangos de numeración permiten que distintas clases del mismo objeto tengan secuencias independientes. Por ejemplo:
+
+Factura A: FA-00000001
+Factura B: FB-00000001
+Nota de crédito: NC-00000001
+
+CONFIGURACIONES RELACIONADAS
+
+Una clase de documento puede tener varias configuraciones adicionales:
+
+- Interlocutores: participantes posibles u obligatorios, como cliente, proveedor, financiador, paciente o destinatario de factura.
+- Archivos: tipos de adjuntos permitidos o requeridos.
+- Formularios: formularios o plantillas disponibles para esa clase.
+- Mensajes: comunicaciones que se pueden generar, como correos, avisos o notificaciones.
+- Motivos de rechazo: causas válidas para rechazar un documento.
+- Motivos de operación: motivos permitidos para crear o procesar el documento.
+- Estados: estados admitidos y reglas asociadas.
+- Textos: tipos de textos o comentarios disponibles.
+- Workflows: procesos que se disparan al crear o modificar un documento.
+- Campos: definición de campos requeridos, visibles, editables o con control de cambios.
+- Atributos: parámetros propios del objeto y extensiones personalizadas.
+
+RELACIÓN CON LOS OBJETOS DEL SISTEMA
+
+Las clases de documento se usan transversalmente en gran parte del sistema. Se encuentran asociadas con objetos de administración, compras, ventas, stock, finanzas, recursos humanos, salud, educación, logística, CRM, consultoría, deportes y gestión general.
+
+Ejemplos de objetos que utilizan clases de documento:
+
+- Compras: facturas, pedidos, proveedores, gastos y precios.
+- Ventas: clientes, facturas, pedidos, listas de precios, servicios y liquidaciones.
+- Stock: materiales, lotes, series, movimientos, órdenes WMS, calidad y mantenimiento.
+- Recursos humanos: empleados, licencias, liquidaciones, asignaciones y puestos de trabajo.
+- Salud: pacientes, prestaciones, planes, evaluaciones y liquidaciones.
+- Educación: alumnos, docentes, planes, módulos y liquidaciones.
+- Finanzas y tesorería: movimientos financieros, CAI, puntos de venta y tesorería.
+- Logística: transportes y conductores.
+
+No todos los objetos están obligados a usar clases de documento. El uso debe estar habilitado en el controlador o implementado explícitamente en el modelo correspondiente. Los catálogos técnicos y algunas tablas auxiliares pueden no necesitarlas.
+
+FUNCIONAMIENTO AL CREAR UN OBJETO
+
+Cuando se crea un objeto que utiliza clases de documento, el sistema:
+
+1. Determina el tipo de objeto.
+2. Busca las clases activas configuradas para ese tipo.
+3. Si existe una sola clase, la selecciona automáticamente.
+4. Si existen varias, muestra una lista para que el usuario elija.
+5. Carga toda la configuración de la clase seleccionada.
+6. Utiliza sus parámetros para inicializar la pantalla y el documento.
+
+Por ejemplo, al crear un movimiento de stock se puede elegir entre entrada, salida, transferencia, ajuste o anulación. La opción seleccionada determina las reglas que se aplicarán.
+
+FUNCIONAMIENTO AL ABRIR Y GUARDAR
+
+Al abrir un documento existente, el sistema lee su SysDocClsCod, carga la clase correspondiente y recupera sus atributos y configuraciones relacionadas. De esta forma, el comportamiento histórico del documento queda asociado a la clase con la que fue creado.
+
+Al guardar, la clase puede intervenir para:
+
+- Ejecutar validaciones antes del guardado.
+- Ejecutar extensiones personalizadas antes o después de guardar.
+- Aplicar valores predeterminados.
+- Iniciar o validar workflows.
+- Registrar cambios en campos configurados.
+- Generar auditoría.
+- Enviar mensajes o notificaciones.
+- Aplicar reglas específicas del módulo.
+
+También puede haber extensiones antes y después de contabilizar un documento.
+
+EJEMPLO: MOVIMIENTOS DE STOCK
+
+En stock, una clase de documento puede determinar:
+
+- Si el movimiento es una entrada, salida o transferencia.
+- Qué tipos de origen y destino están permitidos.
+- Si el origen y el destino son obligatorios.
+- Si debe descontar stock del origen o aumentar stock en el destino.
+- Si se debe controlar la existencia disponible.
+- Si se admite stock negativo.
+- Si se pueden crear lotes o números de serie automáticamente.
+- Si requiere picking o confirmación.
+- Cómo se actualizan los costos.
+- Qué clase debe utilizarse para anularlo.
+- Qué otros documentos puede referenciar.
+
+Así, la misma estructura de movimiento sirve para implementar diferentes operaciones mediante configuración.
+
+RELACIÓN ENTRE DOCUMENTOS
+
+Las clases también controlan cómo se relacionan documentos distintos. Por ejemplo:
+
+Pedido de compra
+        |
+        v
+Recepción de mercadería
+        |
+        v
+Factura de proveedor
+
+O bien:
+
+Pedido de venta
+        |
+        v
+Entrega al cliente
+        |
+        v
+Factura de venta
+
+La configuración puede determinar qué clases se pueden referenciar, qué clase continúa un proceso, qué clase se utiliza para anular un documento, qué documentos actúan como origen y destino, y qué cantidades o posiciones se procesaron.
+
+CLASES DE ANULACIÓN
+
+Una clase puede configurarse como documento reversor o de anulación. Por ejemplo:
+
+Salida de mercadería
+        |
+        v
+Anulación de salida
+
+La clase de anulación establece qué clases puede revertir, cómo debe compensarse el movimiento y qué referencias son obligatorias.
+
+SEGURIDAD Y AUTORIZACIONES
+
+Cada clase puede tener un código de autorización. Esto permite que un usuario tenga permiso para operar una clase y no otra, aunque ambas pertenezcan al mismo tipo de objeto.
+
+Por ejemplo, un usuario puede estar autorizado a crear pedidos normales, pero no ajustes de stock, anulaciones o pedidos urgentes.
+
+ESTADO ACTIVO E INACTIVO
+
+Una clase activa puede utilizarse para crear nuevos documentos. Una clase inactiva deja de ofrecerse para nuevas operaciones, pero continúa existiendo para interpretar correctamente los documentos históricos.
+
+Cuando una clase ya fue utilizada, no debería eliminarse. La forma correcta de retirarla es inactivarla, para preservar la trazabilidad histórica.
+
+RESUMEN
+
+La clase de documento es una capa de configuración situada entre el tipo de objeto y el documento concreto.
+
+Tipo de objeto
+    Define la estructura general.
+
+Clase de documento
+    Define las reglas, parámetros y comportamiento.
+
+Documento
+    Contiene los datos concretos de una operación.
+
+Por lo tanto, una clase de documento no es solamente una categoría descriptiva. Es uno de los mecanismos principales mediante los cuales el sistema configura el comportamiento de sus objetos sin tener que implementar un modelo y una pantalla completamente diferentes para cada variante.
