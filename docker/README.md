@@ -21,7 +21,7 @@ Ambas variantes incluyen un perfil opcional `development` que agrega SQL Server
    `MSSQL_SA_PASSWORD` por una contraseña fuerte. No versionar ese archivo.
 2. Configure `src/customers/system/engine/tmssDatabaseCfg.php` para el core
    con servidor `sqlserver`, base `tmssSysPrd`, usuario `sa` y la misma
-   contraseña. Ese archivo se incorpora a la imagen PHP durante el build.
+   contraseña.
 3. Inicie una variante con el perfil de desarrollo:
 
 ```sh
@@ -40,11 +40,12 @@ esa operación elimina los datos de desarrollo de forma irreversible.
 
 ## Preparación común
 
-Antes de construir la imagen, la configuración estándar de la aplicación debe
+Antes de iniciar los servicios, la configuración estándar de la aplicación debe
 estar disponible en `src/customers/system/engine/tmssDatabaseCfg.php` y debe
-apuntar al core, no a una base de cliente. Docker no crea, copia ni monta ese
-archivo de forma separada: el `COPY src/customers` del Dockerfile toma el árbol
-de la aplicación tal como está.
+apuntar al core, no a una base de cliente. En los Compose de desarrollo,
+`src/customers` se monta como volumen en PHP y `wwwroot` se monta en Nginx de
+forma de solo lectura; los cambios de código y configuración se ven sin
+reconstruir las imágenes.
 
 En tiempo de ejecución, la aplicación consulta `SYS_CNX` en el core mediante
 `SYS_CNX_DEF` y con el identificador `bsecnx` abre la base del cliente. Por ello,
@@ -54,9 +55,8 @@ servidor, base y credenciales sean válidos. Si SQL Server usa un certificado
 interno o autofirmado, instale su CA en la imagen antes de producción; no
 desactive la validación TLS como solución permanente.
 
-Como el archivo forma parte de la imagen resultante, trátela como un artefacto
-privado: no la publique en un registro público. Todo cambio de la configuración
-requiere reconstruir el servicio con `up -d --build`.
+Las imágenes no incluyen el código ni la configuración de la aplicación: los
+servicios de Compose los reciben mediante volúmenes al iniciarse.
 
 Opcionalmente, defina las variables de entorno antes de iniciar:
 
@@ -80,8 +80,9 @@ docker compose -f docker/alpine/docker-compose.yml ps
 docker compose -f docker/alpine/docker-compose.yml logs -f
 ```
 
-La aplicación queda disponible en `http://localhost:${HTTP_PORT:-8080}`. Para
-actualizar el código, vuelva a construir y recree los servicios:
+La aplicación queda disponible en `http://localhost:${HTTP_PORT:-8080}`. Los
+cambios de código se aplican de inmediato por los volúmenes montados. Reconstruya
+sólo cuando cambien los Dockerfiles o las dependencias de la imagen:
 
 ```sh
 docker compose -f docker/alpine/docker-compose.yml up -d --build
@@ -111,12 +112,18 @@ docker compose -f docker/debian/docker-compose.yml ps
 docker compose -f docker/debian/docker-compose.yml logs -f
 ```
 
-La actualización y detención siguen el mismo esquema:
+Los cambios de código se aplican de inmediato por los volúmenes montados.
+Reconstruya sólo cuando cambien los Dockerfiles o las dependencias de la imagen:
 
 ```sh
 docker compose -f docker/debian/docker-compose.yml up -d --build
 docker compose -f docker/debian/docker-compose.yml down
 ```
+
+La configuración de desarrollo de PHP valida los cambios de archivos en cada
+solicitud, por lo que al recargar el navegador se reflejan sin reiniciar el
+contenedor. Si se modifica `docker/php/conf.d/zz-lsk-core.ini`, reconstruya el
+servicio PHP una vez.
 
 Para eliminar también el volumen de logs, use `down -v`.
 
@@ -137,11 +144,11 @@ docker compose -f docker/debian/docker-compose.yml logs -f php nginx
 ```
 
 Los logs propios de la aplicación persisten en el volumen `lsk-core-<variante>-logs`.
-Las imágenes de PHP y Nginx se construyen con la misma revisión del código; Nginx
-expone únicamente `/var/www/customers/wwwroot`. PHP utiliza el archivo de
-credenciales del core que ya está en
-`src/customers/system/engine/tmssDatabaseCfg.php` al momento de construir la
-imagen y resuelve las conexiones de clientes desde `SYS_CNX`.
+En desarrollo, PHP recibe `src/customers` como volumen y Nginx expone el
+subdirectorio montado `/var/www/customers/wwwroot`. PHP utiliza el archivo de
+credenciales del core disponible en
+`src/customers/system/engine/tmssDatabaseCfg.php` y resuelve las conexiones de
+clientes desde `SYS_CNX`.
 
 Antes de exponer el puerto a Internet, publique Nginx detrás de un proxy TLS o
 añada certificados y una configuración HTTPS. Ajuste los límites de PHP y

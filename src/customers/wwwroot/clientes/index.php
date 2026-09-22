@@ -18,113 +18,19 @@
 		exit;
 	} else {
 		switch( $lv_path[2] ) {
-			case 'temasis':
-				$lv_ttl = 'Temasis Argentina SRL';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/temasisargentina.png';
-				$lv_key = 'X000021470';
-				break;
-			case 'teaminfusionar':
-				$lv_ttl = 'TEAM INFUSION';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/teaminfusionar.jpg';
-				$lv_key = 'X000050647';
-				break;			
-			case 'teaminfusioncl':
-				$lv_ttl = 'TEAM INFUSION';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/teaminfusioncl.jpg';
-				$lv_key = 'X000050186';
-				break;			
-			case 'teaminfusionuy':
-				$lv_ttl = 'TEAM INFUSION';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/teaminfusionuy.jpg';
-				$lv_key = 'X000053413';
-				break;
-			case 'teamtrainingar':
-				$lv_ttl = 'TEAM TRAINING';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/teamtrainingar.jpg';
-				$lv_key = 'X000049172';
-				break;
-			case 'logindoor':
-				$lv_ttl = 'LOGINDOOR';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/logindoor.jpg';
-				$lv_key = 'X000011295';
-				break;
-			case 'teampediatrico':
-				$lv_ttl = 'TEAM PEDIATRICO';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/teampediatrico.jpg';
-				$lv_key = 'X000049183';
-				break;
-			case 'dpiballester':
-				$lv_ttl = 'DIAGNOSTICO BALLESTER';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/dpiballester.jpg';
-				$lv_key = 'X000059069';
-				break;
-			case 'osiadsalud':
-				$lv_ttl = 'OSIAD SALUD';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/osiad.gif';
-				$lv_key = 'X000040707';
-				break;				
-			case 'supplysouth':
-				$lv_ttl = 'SUPPLY SOUTH';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/supplysouth.jpg';
-				$lv_key = 'X000017277';
-				$lv_servicio_suspendido = '';
-				break;
-			case 'supplynorth':
-				$lv_ttl = 'SUPPLY NORTH';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/supplynorth.png';
-				$lv_key = 'X000017277';
-				$lv_servicio_suspendido = '';
-				break;
-			case 'tigrejoven':
-				$lv_ttl = 'TIGRE JOVEN';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/tigrejoven.png';
-				$lv_key = 'X000042028';
-				$lv_servicio_suspendido = '';
-				break;
-			case 'emaservicios':
-				$lv_ttl = 'EMASERVICIOS';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/emaservicios.png';
-				$lv_key = 'X000059715';
-				$lv_servicio_suspendido = '';
-				break;				
-			case 'coordlinehealth':
-				$lv_ttl = 'Coordline Health';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/coordlinehealth.jpeg';
-				$lv_key = 'X000033429';
-				$lv_servicio_suspendido = '';
-				break;				
-			case 'selfingenieria':
-				$lv_ttl = 'Coordline Health';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/selfingenieria.png';
-				$lv_key = 'X000076457';
-				$lv_servicio_suspendido = '';
-				break;				
-			case 'hecaglobal':
-				$lv_ttl = 'Heca Global';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/dana_diabecare2.jpeg';
-				$lv_key = 'X000039087';
-				$lv_servicio_suspendido = '';
-				break;				
-			case 'cuidadovital':
-				$lv_ttl = 'Cuidado Vital';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/cuidadovital1.png';
-				$lv_key = 'X000058261';
-				$lv_servicio_suspendido = '';
+			case 'linsock':
+				$lv_ttl = 'Linsock';
+				$lv_key = 'X000080192';
 				break;
 			default:
-				$lv_ttl = 'Temasis Argentina SRL';
-				$lv_pic = 'https://customers.gorse.ar/library/images/logos/temasisargentina.png';
-				$lv_key = 'X000058261';
-				break;
-			
-				//header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', true, 404);
-				//exit;
+				header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', true, 404);
+				exit;
 		}
 	}
 	// datos generales
-  $lv_surl = 'https://customers.gorse.ar/clientes/'.$lv_path[2].'';
-	$lv_btnlgn = 'https://customers.gorse.ar/?prg=syssecusr&act=98';
-	$lv_btnpwd = 'https://customers.gorse.ar/?prg=syssecusrpwd&act=11';
+	$lv_surl = 'http://localhost:8080/clientes/'.$lv_path[2].'';
+	$lv_btnlgn = 'http://localhost:8080/?prg=syssecusr&act=98';
+	$lv_btnpwd = 'http://localhost:8080/?prg=syssecusrpwd&act=11';
 	$lv_btneml = 'https://webmail.gorse.ar';	
 ?>
 <!DOCTYPE html>
@@ -133,13 +39,13 @@
     <title><?= $lv_sttl; ?></title>
     <meta name="robots" content="noindex">
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<link rel="shortcut icon" href="https://customers.gorse.ar/library\images\TemasisArgentina_icon.png">
+		<link rel="shortcut icon" href="http://localhost:8080/library/images/TemasisArgentina_icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://customers.gorse.ar/library\plugins\jquery\jquery\3.6.0\jquery.min.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="https://customers.gorse.ar/library\plugins\bootstrap\bootstrap\4.6.0\css\bootstrap.min.css">
-    <script src="https://customers.gorse.ar/library\plugins\bootstrap\bootstrap\4.6.0\js\bootstrap.min.js" type="text/javascript"></script>
-		<link rel="stylesheet" href="https://customers.gorse.ar/library\fonts\font-awesome\6.4.0pro\css\all.min.css">
-    <script src="https://customers.gorse.ar/library\plugins\javascript\js-sha256\0.9.0\sha256.min.js" type="text/javascript"></script>		
+    <script src="http://localhost:8080/library/plugins/jquery/jquery/3.6.0/jquery.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://localhost:8080/library/plugins/bootstrap/bootstrap/4.6.0/css/bootstrap.min.css">
+    <script src="http://localhost:8080/library/plugins/bootstrap/bootstrap/4.6.0/js/bootstrap.min.js" type="text/javascript"></script>
+		<link rel="stylesheet" href="http://localhost:8080/library/fonts/font-awesome/6.4.0pro/css/all.min.css">
+    <script src="http://localhost:8080/library/plugins/javascript/js-sha256/0.9.0/sha256.min.js" type="text/javascript"></script>		
   </head>
   <body style="background-color: #b538a4; background-size: cover; background-attachment: fixed;" id="colimg">
 		<form method="POST" action="<?= $lv_btnpwd; ?>" id="pwdfrm" class="hidden-lg hidden-md hidden-xs">
@@ -194,7 +100,7 @@
 				// set main image
 				var lv_imgnum = Math.floor(Math.random() * 27);
 				lv_imgnum++;
-				var lv_img = "https://customers.gorse.ar/library/images/login/"+lv_imgnum+".jpg";
+				var lv_img = "http://localhost:8080/library/images/login/"+lv_imgnum+".jpg";
 				$("#colimg").css("background-image","url("+lv_img+")");
 				
 				// usr focus

@@ -31,6 +31,7 @@ services:
     environment:
       TZ: ${TZ:-America/Argentina/Buenos_Aires}
     volumes:
+      - ../../src/customers:/var/www/customers
       - lsk-core-alpine-logs:/var/www/customers/system/logs
     healthcheck:
       test: ["CMD-SHELL", "php -m | grep -qx sqlsrv && php -m | grep -qx pdo_sqlsrv"]
@@ -51,6 +52,8 @@ services:
         condition: service_healthy
     ports:
       - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ../../src/customers/wwwroot:/var/www/customers/wwwroot:ro
     networks:
       - app
 

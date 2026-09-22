@@ -30,7 +30,6 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 COPY docker/php/conf.d/zz-lsk-core.ini /usr/local/etc/php/conf.d/zz-lsk-core.ini
-COPY src/customers /var/www/customers
 
 RUN set -eux; \
     mkdir -p /var/www/customers/system/logs; \
