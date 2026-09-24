@@ -1,0 +1,79 @@
+/* S O L A P A S */
+.nav-tabs>li>a {
+	border-top: 0px !important;
+	border-left: 0px !important;
+	border-right: 0px !important;
+	color: #555555 !important;
+}
+.nav-tabs>li>a:hover {
+	border-bottom: #aaaaaa 2px solid !important;
+	border-radius: initial !important;
+}
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+	border-bottom: #1995dc 2px solid !important;
+	font-weight: bold !important;
+}
+
+
+.navbar {
+	border-radius: 0px !important;
+}
+.navbar-default {
+    background-color: #2fa4e7 !important;
+    border-color: #1995dc !important;
+}
+
+
+/* B A R R A    D E    H E R R A M I E N T A S */
+.tmss-navbar {
+	margin-bottom: 0px !important;
+	padding-right: 10px !important;
+	border-radius: unset !important;
+	border: 0px !important;
+}
+.tmss-navbar-sep {
+	margin-bottom: 0px;
+	padding-right: 3px !important;
+	padding-left: 3px !important;
+}
+
+
+/* B O T O N E S */
+.btn {
+	border-radius: 0px !important;
+	box-shadow: none !important;
+	text-shadow: none !important;
+}
+
+
+/* F O R M U L A R I O */
+.form-control{
+	border-radius: 0px !important;
+	box-shadow: none !important;
+	height: inherit !important;
+}
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {    
+	background-color: #f6f6f6 !important; 
+	opacity: initial !important;
+	border: 0px !important;
+	height: inherit !important;
+	box-shadow: none !important;
+	font-weight: bold !important;
+	-webkit-appearance: none !important;
+	-moz-appearance: none !important;
+	text-indent: 1px !important;
+	text-overflow: '' !important;
+}
+.form-horizontal .control-label {
+	padding-top: 7px !important;
+	margin-bottom: 0 !important;
+	text-align: right !important;
+	font-weight: normal !important;
+}
+.tmss-form-group {
+  margin-bottom: 2px !important;
+}
+
+.has-error .form-control {
+	background-color: #FFEEEE !important;
+}

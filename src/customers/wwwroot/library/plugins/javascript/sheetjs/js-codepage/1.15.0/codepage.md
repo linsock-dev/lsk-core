@@ -1,0 +1,190 @@
+# Getting Codepages
+
+The fields of the `pages.csv` manifest are `codepage,url,bytes` (SBCS=1, DBCS=2)
+
+Note that the Windows rendering is used for the Mac code pages.  The primary
+difference is the use of the private `0xF8FF` code (which renders as an Apple
+logo on macs but as garbage on other operating systems).  It may be desirable
+to fall back to the behavior, in which case the files are under APPLE and not
+MICSFT.  This affects codepages 10000, 10006, 10007, 10029, 10079, 10081
+
+The numbering scheme for the `ISO-8859-X` series is `28590 + X`:
+
+## Generated Codepages
+
+The following codepages are available in .NET on Windows:
+
+- 708   Arabic (ASMO 708)
+- 720   Arabic (Transparent ASMO); Arabic (DOS)
+- 858   OEM Multilingual Latin 1 + Euro symbol
+- 870   IBM EBCDIC Multilingual/ROECE (Latin 2); IBM EBCDIC Multilingual Latin 2
+- 1047  IBM EBCDIC Latin 1/Open System
+- 1140  IBM EBCDIC US-Canada (037 + Euro symbol); IBM EBCDIC (US-Canada-Euro)
+- 1141  IBM EBCDIC Germany (20273 + Euro symbol); IBM EBCDIC (Germany-Euro)
+- 1142  IBM EBCDIC Denmark-Norway (20277 + Euro symbol); IBM EBCDIC (Denmark-Norway-Euro)
+- 1143  IBM EBCDIC Finland-Sweden (20278 + Euro symbol); IBM EBCDIC (Finland-Sweden-Euro)
+- 1144  IBM EBCDIC Italy (20280 + Euro symbol); IBM EBCDIC (Italy-Euro)
+- 1145  IBM EBCDIC Latin America-Spain (20284 + Euro symbol); IBM EBCDIC (Spain-Euro)
+- 1146  IBM EBCDIC United Kingdom (20285 + Euro symbol); IBM EBCDIC (UK-Euro)
+- 1147  IBM EBCDIC France (20297 + Euro symbol); IBM EBCDIC (France-Euro)
+- 1148  IBM EBCDIC International (500 + Euro symbol); IBM EBCDIC (International-Euro)
+- 1149  IBM EBCDIC Icelandic (20871 + Euro symbol); IBM EBCDIC (Icelandic-Euro)
+- 1361  Korean (Johab)
+- 10001 Japanese (Mac)
+- 10002 MAC Traditional Chinese (Big5); Chinese Traditional (Mac)
+- 10003 Korean (Mac)
+- 10004 Arabic (Mac)
+- 10005 Hebrew (Mac)
+- 10008 MAC Simplified Chinese (GB 2312); Chinese Simplified (Mac)
+- 10010 Romanian (Mac)
+- 10017 Ukrainian (Mac)
+- 10021 Thai (Mac)
+- 10082 Croatian (Mac)
+- 20000 CNS Taiwan; Chinese Traditional (CNS)
+- 20001 TCA Taiwan
+- 20002 ETEN Taiwan; Chinese Traditional (ETEN)
+- 20003 IBM5550 Taiwan
+- 20004 TeleText Taiwan
+- 20005 Wang Taiwan
+- 20105 IA5 (IRV International Alphabet No. 5, 7-bit); Western European (IA5)
+- 20106 IA5 German (7-bit)
+- 20107 IA5 Swedish (7-bit)
+- 20108 IA5 Norwegian (7-bit)
+- 20261 T.61
+- 20269 ISO 6937 Non-Spacing Accent
+- 20273 IBM EBCDIC Germany
+- 20277 IBM EBCDIC Denmark-Norway
+- 20278 IBM EBCDIC Finland-Sweden
+- 20280 IBM EBCDIC Italy
+- 20284 IBM EBCDIC Latin America-Spain
+- 20285 IBM EBCDIC United Kingdom
+- 20290 IBM EBCDIC Japanese Katakana Extended
+- 20297 IBM EBCDIC France
+- 20420 IBM EBCDIC Arabic
+- 20423 IBM EBCDIC Greek
+- 20424 IBM EBCDIC Hebrew
+- 20833 IBM EBCDIC Korean Extended
+- 20838 IBM EBCDIC Thai
+- 20866 Russian (KOI8-R); Cyrillic (KOI8-R)
+- 20871 IBM EBCDIC Icelandic
+- 20880 IBM EBCDIC Cyrillic Russian
+- 20905 IBM EBCDIC Turkish
+- 20924 IBM EBCDIC Latin 1/Open System (1047 + Euro symbol)
+- 20932 Japanese (JIS 0208-1990 and 0212-1990)
+- 20936 Simplified Chinese (GB2312); Chinese Simplified (GB2312-80)
+- 20949 Korean Wansung
+- 21025 IBM EBCDIC Cyrillic Serbian-Bulgarian
+- 21027 Extended/Ext Alpha Lowercase
+- 21866 Ukrainian (KOI8-U); Cyrillic (KOI8-U)
+- 29001 Europa 3
+- 38598 ISO 8859-8 Hebrew; Hebrew (ISO-Logical)
+- 51932 EUC Japanese
+- 51936 EUC Simplified Chinese; Chinese Simplified (EUC)
+- 51949 EUC Korean
+- 52936 HZ-GB2312 Simplified Chinese; Chinese Simplified (HZ)
+- 54936 Windows XP and later: GB18030 Simplified Chinese (4 byte); Chinese Simplified (GB18030)
+- 57002 ISCII Devanagari
+- 57003 ISCII Bengali
+- 57004 ISCII Tamil
+- 57005 ISCII Telugu
+- 57006 ISCII Assamese
+- 57007 ISCII Oriya
+- 57008 ISCII Kannada
+- 57009 ISCII Malayalam
+- 57010 ISCII Gujarati
+- 57011 ISCII Punjabi
+
+The following codepages are dependencies for Visual FoxPro:
+
+- 620 Mazovia (Polish) MS-DOS
+- 895 Kamenický (Czech) MS-DOS
+
+## Building Notes
+
+The script `make.sh` (described later) will get these files and massage the data
+(printing code-Unicode pairs).  The eventual tables are dropped in the paths
+`./codepages/<CODEPAGE>.TBL`.  For example, the last 10 lines of `10000.TBL` are
+
+```>
+0xF6	0x02C6
+0xF7	0x02DC
+0xF8	0x00AF
+0xF9	0x02D8
+0xFA	0x02D9
+0xFB	0x02DA
+0xFC	0x00B8
+0xFD	0x02DD
+0xFE	0x02DB
+0xFF	0x02C7
+```
+
+which implies that code `0xF6` is `String.fromCharCode(0x02C6)` and vice versa.
+
+## Windows-dependent build step
+
+To build the sources on windows, consult `dotnet/MakeEncoding.cs`.
+
+After saving standard output to `out`, the `dotnet.sh` script processes results. 
+
+# Building the script
+
+`make.njs` takes a codepage argument, reads the corresponding table file and
+generates JS code for encoding and decoding:
+
+## Raw Codepages
+
+The DBCS and SBCS code generation strategies are different.  The maximum code is
+used to distinguish (max `0xFF` for SBCS).
+
+The Unicode character `0xFFFD` (REPLACEMENT CHARACTER) is used as a placeholder
+for characters that are not specified in the map (for example, `0xF0` is not in
+code page 10000).
+
+For SBCS, the idea is to embed a raw string with the contents of the 256 codes.
+The `dec` field is merely a split of the string, and `enc` is an eversion:
+
+DBCS is similar, except that the space is sliced in chunks of 256 bytes (strings
+are only generated for those high-bytes represented in the codepage).
+
+The strategy is to construct an array-of-arrays so that `dd[high][low]` is the
+character associated with the code.  This array is combined at runtime to yield
+the complete decoding object (and the encoding object is an eversion):
+
+`make.sh` generates the tables used by `make.njs`.  The raw Unicode TXT files
+are columnar: `code unicode #comments`.  For example, the last 10 lines of the
+text file `ROMAN.TXT` (for CP 10000) are:
+
+```>
+0xF6	0x02C6	#MODIFIER LETTER CIRCUMFLEX ACCENT
+0xF7	0x02DC	#SMALL TILDE
+0xF8	0x00AF	#MACRON
+0xF9	0x02D8	#BREVE
+0xFA	0x02D9	#DOT ABOVE
+0xFB	0x02DA	#RING ABOVE
+0xFC	0x00B8	#CEDILLA
+0xFD	0x02DD	#DOUBLE ACUTE ACCENT
+0xFE	0x02DB	#OGONEK
+0xFF	0x02C7	#CARON
+```
+
+In processing the data, the comments (after the `#`) are stripped and undefined
+elements (like `0x7F` for CP 10000) are removed.
+
+## Utilities
+
+The encode and decode functions are kept in a separate script (`cputils.js`).
+
+Both encode and decode deal with data represented as:
+
+- String (encode expects JS string, decode interprets UCS2 chars as codes)
+- Array (encode expects array of JS String characters, decode expects numbers)
+- Buffer (encode expects UTF-8 string, decode expects codepoints/bytes).
+
+The `ofmt` variable controls `encode` output (`str`, `arr` respectively)
+while the input format is automatically determined.
+
+# Nitty Gritty
+
+```>.vocrc
+{ "post": "make js" }
+```

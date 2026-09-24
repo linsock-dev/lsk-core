@@ -1,0 +1,23 @@
+# Getting Codepages
+
+The fields of the `pages.csv` manifest are `codepage,url,bytes` (SBCS=1, DBCS=2)
+
+Note that the Windows rendering is used for the Mac code pages.  The primary
+difference is the use of the private `0xF8FF` code (which renders as an Apple
+logo on macs but as garbage on other operating systems).  It may be desirable
+to fall back to the behavior, in which case the files are under APPLE and not
+MICSFT.  This affects codepages 10000, 10006, 10007, 10029, 10079, 10081
+
+The numbering scheme for the `ISO-8859-X` series is `28590 + X`:
+
+## Generated Codepages
+
+The following codepages are available in .NET on Windows:
+
+- 708   Arabic (ASMO 708)
+- 720   Arabic (Transparent ASMO); Arabic (DOS)
+- 858   OEM Multilingual Latin 1 + Euro symbol
+- 870   IBM EBCDIC Multilingual/ROECE (Latin 2); IBM EBCDIC Multilingual Latin 2
+- 1047  IBM EBCDIC Latin 1/Open System
+- 1140  IBM EBCDIC US-Canada (037 + Euro symbol); IBM EBCDIC (US-Canada-Euro)
+- 1141  IBM EBCDIC Germany (20273 + Euro sym

@@ -1,0 +1,30 @@
+{
+  "name": "tableExport.jquery.plugin",
+  "version": "1.0.1",
+  "dependencies": {
+    "jquery": ">=1.9.1",
+    "jspdf": "~1.0.272"
+  },
+  "authors": [
+    "hhurz",
+    "kayalshri"
+  ],
+  "description": "html table export",
+  "main": "tableExport.min.js",
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "html5",
+    "javascript",
+    "jquery",
+    "export",
+    "table"
+  ],
+  "ignore": [
+    "libs",
+    "test",
+    "tools",
+    "tableExport.js"
+  ]
+}
